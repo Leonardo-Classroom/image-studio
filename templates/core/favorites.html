@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}我的最愛 — 圖像工作室{% endblock %}
+{% block content %}
+<h1 class="mb-6 text-2xl font-semibold">我的最愛</h1>
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+  {% for fav in favorites %}
+  {% with img=fav.image %}
+  <a href="{% if img.album_item %}{% url 'album_view' img.album_item.album.pk %}?item={{ img.album_item.pk }}{% elif img.text_session %}{% url 'text_detail' img.text_session.pk %}{% else %}#{% endif %}"
+     class="group overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60 transition hover:border-zinc-600">
+    <div class="aspect-square bg-zinc-950">
+      <img src="{{ img.image.url }}" alt="" class="h-full w-full object-cover transition group-hover:scale-105">
+    </div>
+    <div class="flex items-center gap-2 px-3 py-2 text-xs text-zinc-500">
+      <span class="text-rose-400">♥</span>
+      <span class="truncate">{% if img.album_item %}{{ img.album_item.album.name }}{% else %}文字生成{% endif %}</span>
+      <span class="ml-auto shrink-0">seed {{ img.seed }}</span>
+    </div>
+  </a>
+  {% endwith %}
+  {% empty %}
+  <p class="col-span-full text-zinc-500">還沒有最愛。瀏覽時下滑圖片（手機）或按 ♥ 加入。</p>
+  {% endfor %}
+</div>
+{% endblock %}

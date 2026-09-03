@@ -18,6 +18,7 @@ urlpatterns = [
     path("albums/item/<int:pk>/generate/", views.item_generate, name="item_generate"),
     path("albums/tag/<int:pk>/toggle/", views.tag_toggle, name="tag_toggle"),
     path("favorites/<int:pk>/toggle/", views.favorite_toggle, name="favorite_toggle"),
+    path("versions/<int:pk>/delete/", views.version_delete, name="version_delete"),
     path("folders/create/", views.folder_create, name="folder_create"),
     path("folders/<int:pk>/rename/", views.folder_rename, name="folder_rename"),
     path("folders/<int:pk>/delete/", views.folder_delete, name="folder_delete"),

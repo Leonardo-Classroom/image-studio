@@ -22,6 +22,16 @@ document.addEventListener("alpine:init", () => {
       localStorage.setItem("imgstudio.collapsed", this.collapsed ? "1" : "0");
     },
 
+    delVersion() {
+      if (!this.cur || !confirm("刪除此版本？（進回收桶）")) return;
+      fetch("/versions/" + this.cur.id + "/delete/", {
+        method: "POST",
+        headers: { "X-CSRFToken": cfg.csrf },
+      }).then(() =>
+        htmx.ajax("GET", cfg.itemUrl, { target: "#viewer-item", swap: "outerHTML" })
+      );
+    },
+
     favToggle() {
       if (!this.cur) return;
       fetch(cfg.favUrl.replace("/0/", "/" + this.cur.id + "/"), {

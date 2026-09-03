@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}回收桶 — 圖像工作室{% endblock %}
+{% block content %}
+<h1 class="mb-6 text-2xl font-semibold">回收桶</h1>
+
+{% if messages %}{% for m in messages %}
+<p class="mb-4 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">{{ m }}</p>
+{% endfor %}{% endif %}
+
+{% if not albums and not folders and not images %}
+<p class="text-zinc-500">回收桶是空的。</p>
+{% endif %}
+
+{% if albums %}
+<h2 class="mb-3 text-sm font-medium text-zinc-400">專輯</h2>
+<ul class="mb-8 divide-y divide-zinc-800 rounded-2xl border border-zinc-800 bg-zinc-900/60">
+  {% for a in albums %}
+  <li class="flex items-center gap-3 px-4 py-3">
+    <span class="flex-1 truncate">📚 {{ a.name }} <span class="text-xs text-zinc-500">{{ a.items.count }} 張 · 刪於 {{ a.deleted_at|date:"m/d H:i" }}</span></span>
+    <form method="post" action="{% url 'trash_restore' 'album' a.pk %}">{% csrf_token %}<button class="rounded border border-zinc-700 px-2.5 py-1 text-sm text-zinc-300 hover:border-zinc-500">還原</button></form>
+    <form method="post" action="{% url 'trash_purge' 'album' a.pk %}" onsubmit="return confirm('永久刪除「{{ a.name }}」及其所有生成圖檔？此動作無法復原。')">{% csrf_token %}<button class="rounded border border-red-500/40 px-2.5 py-1 text-sm text-red-400 hover:bg-red-500/10">永久刪除</button></form>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% if folders %}
+<h2 class="mb-3 text-sm font-medium text-zinc-400">資料夾</h2>
+<ul class="mb-8 divide-y divide-zinc-800 rounded-2xl border border-zinc-800 bg-zinc-900/60">
+  {% for f in folders %}
+  <li class="flex items-center gap-3 px-4 py-3">
+    <span class="flex-1 truncate">📁 {{ f.name }} <span class="text-xs text-zinc-500">刪於 {{ f.deleted_at|date:"m/d H:i" }}</span></span>
+    <form method="post" action="{% url 'trash_restore' 'folder' f.pk %}">{% csrf_token %}<button class="rounded border border-zinc-700 px-2.5 py-1 text-sm text-zinc-300 hover:border-zinc-500">還原</button></form>
+    <form method="post" action="{% url 'trash_purge' 'folder' f.pk %}" onsubmit="return confirm('永久刪除資料夾「{{ f.name }}」？')">{% csrf_token %}<button class="rounded border border-red-500/40 px-2.5 py-1 text-sm text-red-400 hover:bg-red-500/10">永久刪除</button></form>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% if images %}
+<h2 class="mb-3 text-sm font-medium text-zinc-400">生成版本</h2>
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+  {% for img in images %}
+  <div class="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60">
+    <div class="aspect-square bg-zinc-950"><img src="{{ img.image.url }}" alt="" class="h-full w-full object-cover opacity-70"></div>
+    <div class="flex gap-1.5 p-2">
+      <form method="post" action="{% url 'trash_restore' 'image' img.pk %}" class="flex-1">{% csrf_token %}<button class="w-full rounded border border-zinc-700 py-1 text-xs text-zinc-300 hover:border-zinc-500">還原</button></form>
+      <form method="post" action="{% url 'trash_purge' 'image' img.pk %}" onsubmit="return confirm('永久刪除此版本圖檔？')" class="flex-1">{% csrf_token %}<button class="w-full rounded border border-red-500/40 py-1 text-xs text-red-400 hover:bg-red-500/10">刪除</button></form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

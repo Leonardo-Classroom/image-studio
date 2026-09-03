@@ -21,11 +21,15 @@ class EmptySource(Exception):
 
 
 @transaction.atomic
-def create_draft(owner, source_path: str | Path, threshold: float = 0.78) -> Album:
+def create_draft(owner, source_path: str | Path, threshold: float | None = None) -> Album:
     """掃描原專輯 → 壓平 → 切片 → 嵌入分群 → 建立草稿專輯（含條目/tag/occurrence）。
 
     原資料集只讀不寫。
     """
+    if threshold is None:
+        from core.models import AppSetting
+
+        threshold = AppSetting.get().threshold
     source = Path(source_path)
     entries = iter_album_images(source)
     if not entries:

@@ -3,9 +3,14 @@ from pathlib import Path
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from albums.models import Album, Folder
+from generation.models import Favorite, GeneratedImage
 from sources.models import DatasetRoot
+
+from .models import AppSetting
 
 
 @login_required
@@ -15,7 +20,76 @@ def home(request):
 
 @login_required
 def settings_page(request):
-    return render(request, "core/settings.html", {"roots": DatasetRoot.objects.all()})
+    return render(request, "core/settings.html", {
+        "roots": DatasetRoot.objects.all(),
+        "app": AppSetting.get(),
+    })
+
+
+@login_required
+@require_POST
+def app_setting_save(request):
+    app = AppSetting.get()
+    app.comfyui_url = request.POST.get("comfyui_url", "").strip() or app.comfyui_url
+    try:
+        t = float(request.POST.get("threshold", ""))
+        if 0.3 <= t <= 0.99:
+            app.threshold = t
+    except ValueError:
+        pass
+    app.save()
+    messages.success(request, "設定已儲存")
+    return redirect("settings")
+
+
+@login_required
+def favorites(request):
+    favs = (
+        Favorite.objects.filter(owner=request.user, image__deleted_at__isnull=True)
+        .select_related("image", "image__album_item", "image__text_session")
+    )
+    return render(request, "core/favorites.html", {"favorites": favs})
+
+
+@login_required
+def trash(request):
+    return render(request, "core/trash.html", {
+        "albums": Album.objects.filter(owner=request.user, deleted_at__isnull=False),
+        "folders": Folder.objects.filter(owner=request.user, deleted_at__isnull=False),
+        "images": GeneratedImage.objects.filter(owner=request.user, deleted_at__isnull=False),
+    })
+
+
+@login_required
+@require_POST
+def trash_restore(request, kind, pk):
+    model = {"album": Album, "folder": Folder, "image": GeneratedImage}.get(kind)
+    if model is None:
+        return redirect("trash")
+    obj = get_object_or_404(model, pk=pk, owner=request.user, deleted_at__isnull=False)
+    if isinstance(obj, Album) and obj.folder and obj.folder.deleted_at:
+        obj.folder = None  # 原資料夾還在回收桶，還原到根層
+    obj.deleted_at = None
+    obj.save()
+    messages.success(request, "已還原")
+    return redirect("trash")
+
+
+@login_required
+@require_POST
+def trash_purge(request, kind, pk):
+    model = {"album": Album, "folder": Folder, "image": GeneratedImage}.get(kind)
+    if model is None:
+        return redirect("trash")
+    obj = get_object_or_404(model, pk=pk, owner=request.user, deleted_at__isnull=False)
+    if isinstance(obj, Album):
+        for img in GeneratedImage.objects.filter(album_item__album=obj):
+            img.image.delete(save=False)
+    elif isinstance(obj, GeneratedImage):
+        obj.image.delete(save=False)
+    obj.delete()
+    messages.success(request, "已永久刪除")
+    return redirect("trash")
 
 
 @login_required

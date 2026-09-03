@@ -19,7 +19,11 @@ class GenerationError(Exception):
 
 class ComfyClient:
     def __init__(self, base_url: str | None = None, timeout: float = 10.0):
-        self.base_url = (base_url or settings.COMFYUI_URL).rstrip("/")
+        if base_url is None:
+            from core.models import AppSetting
+
+            base_url = AppSetting.get().comfyui_url or settings.COMFYUI_URL
+        self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.client_id = uuid.uuid4().hex
 

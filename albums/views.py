@@ -341,6 +341,24 @@ def item_generate(request, pk):
 
 @login_required
 @require_POST
+def version_delete(request, pk):
+    """刪除一個生成版本（進回收桶），回傳更新後的條目片段。"""
+    from django.utils import timezone
+
+    from generation.models import GeneratedImage
+
+    image = get_object_or_404(
+        GeneratedImage, pk=pk, owner=request.user, album_item__isnull=False
+    )
+    image.deleted_at = timezone.now()
+    image.save(update_fields=["deleted_at"])
+    return render(
+        request, "albums/_viewer_item.html", _item_view_context(request, image.album_item)
+    )
+
+
+@login_required
+@require_POST
 def favorite_toggle(request, pk):
     from django.http import JsonResponse
 

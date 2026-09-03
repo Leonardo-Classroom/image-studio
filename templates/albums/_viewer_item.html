@@ -1,6 +1,6 @@
 {% load static %}
 <div id="viewer-item"
-     x-data='viewer({versions: {{ versions_json|safe }}, favUrl: "{% url "favorite_toggle" 0 %}", csrf: "{{ csrf_token }}"})'
+     x-data='viewer({versions: {{ versions_json|safe }}, favUrl: "{% url "favorite_toggle" 0 %}", itemUrl: "{% url "item_view" item.pk %}", csrf: "{{ csrf_token }}"})'
      {% if active_jobs %}hx-get="{% url 'item_view' item.pk %}" hx-trigger="every 2.5s" hx-swap="outerHTML"{% endif %}
      class="sm:flex sm:items-start sm:gap-4">
 
@@ -74,7 +74,10 @@
             <div class="mt-2 flex items-center justify-between text-xs text-zinc-400">
               <span>版本 <span x-text="vi + 1"></span>/<span x-text="versions.length"></span></span>
               <span>seed <span x-text="cur.seed"></span> · <span x-text="cur.created"></span></span>
-              <button @click="favToggle()" class="text-base" :class="cur.favorited ? 'text-rose-400' : 'text-zinc-600 hover:text-zinc-300'">♥</button>
+              <span class="flex items-center gap-2">
+                <button @click="favToggle()" class="text-base" :class="cur.favorited ? 'text-rose-400' : 'text-zinc-600 hover:text-zinc-300'">♥</button>
+                <button @click="delVersion()" class="text-zinc-600 transition hover:text-red-400">🗑</button>
+              </span>
             </div>
             <p class="mt-1 max-h-16 overflow-y-auto text-xs leading-relaxed text-zinc-500" x-text="cur.prompt"></p>
           </div>
