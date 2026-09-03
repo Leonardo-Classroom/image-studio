@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}登入 — 圖像工作室{% endblock %}
+{% block main_class %}flex min-h-[calc(100dvh-0px)] items-center justify-center px-4{% endblock %}
+{% block content %}
+<div class="w-full max-w-sm">
+  <div class="mb-8 text-center">
+    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600/20">
+      <span class="inline-block h-3 w-3 rounded-full bg-violet-500"></span>
+    </div>
+    <h1 class="text-xl font-semibold">圖像工作室</h1>
+    <p class="mt-1 text-sm text-zinc-500">圖像訓練生成瀏覽系統</p>
+  </div>
+  <form method="post" class="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+    {% csrf_token %}
+    {% if form.errors %}
+    <p class="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">帳號或密碼錯誤</p>
+    {% endif %}
+    <div>
+      <label for="id_username" class="mb-1 block text-sm text-zinc-400">帳號</label>
+      <input id="id_username" name="username" autofocus autocomplete="username" required
+             class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none transition focus:border-violet-500">
+    </div>
+    <div>
+      <label for="id_password" class="mb-1 block text-sm text-zinc-400">密碼</label>
+      <input id="id_password" name="password" type="password" autocomplete="current-password" required
+             class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none transition focus:border-violet-500">
+    </div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="w-full rounded-lg bg-violet-600 py-2.5 font-medium transition hover:bg-violet-500">登入</button>
+  </form>
+</div>
+{% endblock %}

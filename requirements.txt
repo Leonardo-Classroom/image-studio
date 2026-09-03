@@ -1,0 +1,6 @@
+django>=5.0,<6
+pillow
+requests
+sentence-transformers
+pytest
+pytest-django

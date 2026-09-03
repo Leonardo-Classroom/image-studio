@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+db.sqlite3
+media/
+static/css/app.css
+bin/tailwindcss
+.env
+.pytest_cache/
+thumbnails/
