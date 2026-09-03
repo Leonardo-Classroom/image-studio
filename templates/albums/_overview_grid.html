@@ -1,0 +1,80 @@
+<div id="overview" data-folder="{{ folder.pk|default:'' }}" data-parent-folder="{{ folder.parent.pk|default:'' }}"
+     x-data="{ menu: null, newFolder: false }"
+     @click="menu = null" @ov-menu.window="menu = $event.detail">
+
+  {# 麵包屑（可作為拖曳目標往上移） #}
+  <div class="mb-4 flex flex-wrap items-center gap-1 text-sm text-zinc-400">
+    <a href="{% url 'album_list' %}" hx-get="{% url 'album_list' %}" hx-target="#overview" hx-swap="outerHTML" hx-push-url="{% url 'album_list' %}"
+       data-drop="" class="rounded px-1.5 py-0.5 hover:text-zinc-200">全部專輯</a>
+    {% for c in crumbs %}
+    <span>/</span>
+    <a href="{% url 'album_list' %}?folder={{ c.pk }}" hx-get="{% url 'album_list' %}?folder={{ c.pk }}" hx-target="#overview" hx-swap="outerHTML" hx-push-url="{% url 'album_list' %}?folder={{ c.pk }}"
+       data-drop="{{ c.pk }}" class="rounded px-1.5 py-0.5 {% if forloop.last %}text-zinc-200{% endif %} hover:text-zinc-200">{{ c.name }}</a>
+    {% endfor %}
+    <span class="ml-auto">
+      <button @click.stop="newFolder = !newFolder" class="rounded border border-zinc-700 px-2.5 py-1 text-zinc-400 transition hover:text-zinc-200">＋ 資料夾</button>
+    </span>
+  </div>
+
+  <form x-show="newFolder" x-cloak hx-post="{% url 'folder_create' %}" hx-target="#overview" hx-swap="outerHTML"
+        class="mb-4 flex gap-2">
+    <input type="hidden" name="current_folder" value="{{ folder.pk|default:'' }}">
+    <input name="name" placeholder="資料夾名稱" required autofocus
+           class="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm outline-none focus:border-violet-500">
+    <button class="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium">建立</button>
+  </form>
+
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+    {% for f in folders %}
+    <div draggable="true" data-drag="folder:{{ f.pk }}" data-drop="{{ f.pk }}" data-name="{{ f.name }}"
+         class="group cursor-pointer overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60 transition hover:border-zinc-600"
+         hx-get="{% url 'album_list' %}?folder={{ f.pk }}" hx-target="#overview" hx-swap="outerHTML" hx-push-url="{% url 'album_list' %}?folder={{ f.pk }}"
+         @contextmenu.prevent="$dispatch('ov-menu', {kind: 'folder', id: {{ f.pk }}, name: '{{ f.name|escapejs }}', x: $event.clientX, y: $event.clientY})">
+      <div class="flex aspect-square items-center justify-center bg-zinc-950 text-6xl">📁</div>
+      <div class="px-3 py-2">
+        <p class="truncate font-medium">{{ f.name }}</p>
+        <p class="text-xs text-zinc-500">資料夾</p>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% for album in albums %}
+    <div draggable="true" data-drag="album:{{ album.pk }}" data-name="{{ album.name }}"
+         class="group cursor-pointer overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60 transition hover:border-zinc-600"
+         onclick="if (!window._ovMenuOpen) location.href='{% url 'album_detail' album.pk %}'"
+         @contextmenu.prevent="$dispatch('ov-menu', {kind: 'album', id: {{ album.pk }}, name: '{{ album.name|escapejs }}', x: $event.clientX, y: $event.clientY})">
+      <div class="aspect-square bg-zinc-950">
+        {% with first=album.items.first %}
+        {% if first and first.versions.last %}
+        <img src="{{ first.versions.last.image.url }}" alt="" class="h-full w-full object-cover transition group-hover:scale-105">
+        {% elif first %}
+        <img src="{% url 'item_source_thumb' first.pk %}" alt="" class="h-full w-full object-cover opacity-60 transition group-hover:scale-105">
+        {% endif %}
+        {% endwith %}
+      </div>
+      <div class="px-3 py-2">
+        <p class="truncate font-medium">{{ album.name }}</p>
+        <p class="text-xs text-zinc-500">{{ album.items.count }} 張</p>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% if not folders and not albums %}
+    <p class="col-span-full text-zinc-500">{% if folder %}這個資料夾是空的。{% else %}還沒有專輯，按右上角建立第一本。{% endif %}</p>
+    {% endif %}
+  </div>
+
+  {# 右鍵 / 長按選單 #}
+  <template x-if="menu">
+    <div class="fixed z-50 w-44 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 py-1 shadow-2xl"
+         :style="`left:${Math.min(menu.x, window.innerWidth - 190)}px; top:${Math.min(menu.y, window.innerHeight - 180)}px`"
+         @click.stop>
+      <p class="truncate px-3 py-1.5 text-xs text-zinc-500" x-text="menu.name"></p>
+      <button @click="ovRename(menu); menu = null" class="block w-full px-3 py-2 text-left text-sm hover:bg-zinc-800">✏️ 改名</button>
+      {% if folder %}
+      <button @click="ovMoveUp(menu); menu = null" class="block w-full px-3 py-2 text-left text-sm hover:bg-zinc-800">⬆️ 移到上層</button>
+      {% endif %}
+      <button @click="ovDelete(menu); menu = null" class="block w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-zinc-800">🗑️ 刪除</button>
+    </div>
+  </template>
+</div>

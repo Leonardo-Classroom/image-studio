@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}專輯總覽 — 圖像工作室{% endblock %}
 {% block content %}
+<script src="{% static 'js/overview.js' %}"></script>
 <div class="mb-6 flex items-center justify-between">
   <h1 class="text-2xl font-semibold">專輯總覽</h1>
   <a href="{% url 'album_new' %}" class="rounded-lg bg-violet-600 px-4 py-2 font-medium transition hover:bg-violet-500">＋ 建立專輯</a>
@@ -10,25 +12,5 @@
 <p class="mb-4 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">{{ m }}</p>
 {% endfor %}{% endif %}
 
-<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-  {% for album in albums %}
-  <a href="{% url 'album_detail' album.pk %}" class="group overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60 transition hover:border-zinc-600">
-    <div class="aspect-square bg-zinc-950">
-      {% with first=album.items.first %}
-      {% if first and first.versions.last %}
-      <img src="{{ first.versions.last.image.url }}" alt="" class="h-full w-full object-cover transition group-hover:scale-105">
-      {% elif first %}
-      <img src="{% url 'item_source_thumb' first.pk %}" alt="" class="h-full w-full object-cover opacity-60 transition group-hover:scale-105">
-      {% endif %}
-      {% endwith %}
-    </div>
-    <div class="px-3 py-2">
-      <p class="truncate font-medium">{{ album.name }}</p>
-      <p class="text-xs text-zinc-500">{{ album.items.count }} 張</p>
-    </div>
-  </a>
-  {% empty %}
-  <p class="col-span-full text-zinc-500">還沒有專輯，按右上角建立第一本。</p>
-  {% endfor %}
-</div>
+{% include "albums/_overview_grid.html" %}
 {% endblock %}

@@ -18,17 +18,119 @@ def _own_albums(request):
     return Album.objects.filter(owner=request.user, deleted_at__isnull=True)
 
 
-@login_required
-def album_list(request):
+def _own_folders(request):
+    return Folder.objects.filter(owner=request.user, deleted_at__isnull=True)
+
+
+def _overview_context(request):
+    folder = None
+    folder_id = request.GET.get("folder") or request.POST.get("current_folder")
+    if folder_id:
+        folder = get_object_or_404(_own_folders(request), pk=folder_id)
     albums = (
         _own_albums(request)
-        .filter(status=Album.Status.READY)
+        .filter(status=Album.Status.READY, folder=folder)
         .prefetch_related("items__versions")
     )
-    folders = Folder.objects.filter(
-        owner=request.user, deleted_at__isnull=True, parent__isnull=True
+    folders = _own_folders(request).filter(parent=folder)
+    crumbs = []
+    node = folder
+    while node is not None:
+        crumbs.append(node)
+        node = node.parent
+    crumbs.reverse()
+    return {"albums": albums, "folders": folders, "folder": folder, "crumbs": crumbs}
+
+
+@login_required
+def album_list(request):
+    template = (
+        "albums/_overview_grid.html"
+        if request.headers.get("HX-Request") else "albums/list.html"
     )
-    return render(request, "albums/list.html", {"albums": albums, "folders": folders})
+    return render(request, template, _overview_context(request))
+
+
+def _refresh_overview(request):
+    return render(request, "albums/_overview_grid.html", _overview_context(request))
+
+
+@login_required
+@require_POST
+def folder_create(request):
+    name = request.POST.get("name", "").strip()
+    parent_id = request.POST.get("current_folder") or None
+    parent = get_object_or_404(_own_folders(request), pk=parent_id) if parent_id else None
+    if name:
+        Folder.objects.create(owner=request.user, name=name, parent=parent)
+    return _refresh_overview(request)
+
+
+@login_required
+@require_POST
+def folder_rename(request, pk):
+    folder = get_object_or_404(_own_folders(request), pk=pk)
+    name = request.POST.get("name", "").strip()
+    if name:
+        folder.name = name
+        folder.save(update_fields=["name"])
+    return _refresh_overview(request)
+
+
+@login_required
+@require_POST
+def folder_delete(request, pk):
+    """刪資料夾：內容物移到上層，資料夾本身進回收桶。"""
+    from django.utils import timezone
+
+    folder = get_object_or_404(_own_folders(request), pk=pk)
+    folder.albums.update(folder=folder.parent)
+    folder.children.update(parent=folder.parent)
+    folder.deleted_at = timezone.now()
+    folder.save(update_fields=["deleted_at"])
+    return _refresh_overview(request)
+
+
+@login_required
+@require_POST
+def folder_move(request, pk):
+    folder = get_object_or_404(_own_folders(request), pk=pk)
+    target_id = request.POST.get("target") or None
+    target = get_object_or_404(_own_folders(request), pk=target_id) if target_id else None
+    if target is None or not target.is_descendant_of(folder):
+        folder.parent = target
+        folder.save(update_fields=["parent"])
+    return _refresh_overview(request)
+
+
+@login_required
+@require_POST
+def album_move(request, pk):
+    album = get_object_or_404(_own_albums(request), pk=pk)
+    target_id = request.POST.get("target") or None
+    target = get_object_or_404(_own_folders(request), pk=target_id) if target_id else None
+    album.folder = target
+    album.save(update_fields=["folder"])
+    return _refresh_overview(request)
+
+
+@login_required
+@require_POST
+def album_rename(request, pk):
+    album = get_object_or_404(_own_albums(request), pk=pk)
+    name = request.POST.get("name", "").strip()
+    if name:
+        album.name = name
+        album.save(update_fields=["name"])
+    return _refresh_overview(request)
+
+
+@login_required
+@require_POST
+def album_delete(request, pk):
+    album = get_object_or_404(_own_albums(request), pk=pk)
+    album.soft_delete()
+    return _refresh_overview(request)
 
 
 @login_required
