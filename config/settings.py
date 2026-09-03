@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "core",
     "generation",
+    "datasets",
+    "ragtags",
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}設定 — 圖像工作室{% endblock %}
+{% block content %}
+<h1 class="mb-6 text-2xl font-semibold">設定</h1>
+
+{% if messages %}
+<div class="mb-4 space-y-2">
+  {% for m in messages %}
+  <p class="rounded-lg px-3 py-2 text-sm {% if m.tags == 'error' %}bg-red-500/10 text-red-400{% else %}bg-emerald-500/10 text-emerald-400{% endif %}">{{ m }}</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+<section class="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+  <h2 class="mb-4 font-medium">資料集根路徑</h2>
+  <ul class="mb-4 divide-y divide-zinc-800">
+    {% for root in roots %}
+    <li class="flex items-center gap-3 py-2">
+      <span class="font-medium">{{ root.name }}</span>
+      <code class="flex-1 truncate text-sm text-zinc-500">{{ root.path }}</code>
+      <form method="post" action="{% url 'dataset_root_delete' root.pk %}">{% csrf_token %}
+        <button class="rounded border border-zinc-700 px-2 py-1 text-sm text-zinc-400 hover:border-red-400/50 hover:text-red-400">移除</button>
+      </form>
+    </li>
+    {% empty %}
+    <li class="py-2 text-sm text-zinc-500">尚未設定資料集，加入一個本機路徑開始。</li>
+    {% endfor %}
+  </ul>
+  <form method="post" action="{% url 'dataset_root_add' %}" class="flex flex-col gap-3 sm:flex-row">
+    {% csrf_token %}
+    <input name="name" placeholder="名稱（如：主資料集）" required
+           class="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500 sm:w-48">
+    <input name="path" placeholder="/mnt/f/AI/datasets" required
+           class="flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-sm outline-none focus:border-violet-500">
+    <button class="rounded-lg bg-violet-600 px-4 py-2 font-medium transition hover:bg-violet-500">加入</button>
+  </form>
+</section>
+{% endblock %}
