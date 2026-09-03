@@ -8,6 +8,8 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path("", include("core.urls")),
     path("", include("generation.urls")),
+    path("", include("sources.urls")),
+    path("", include("albums.urls")),
 ]
 
 if settings.DEBUG:

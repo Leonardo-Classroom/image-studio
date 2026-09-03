@@ -6,13 +6,13 @@
     <h2 class="font-medium">✍️ 文字生成</h2>
     <p class="mt-1 text-sm text-zinc-400">輸入 prompt 直接生成圖片</p>
   </a>
-  <div class="rounded-2xl border border-zinc-800/60 p-6 opacity-50">
+  <a href="{% url 'album_list' %}" class="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 transition hover:border-violet-500/50">
     <h2 class="font-medium">📚 專輯總覽</h2>
-    <p class="mt-1 text-sm text-zinc-400">建置中</p>
-  </div>
-  <div class="rounded-2xl border border-zinc-800/60 p-6 opacity-50">
-    <h2 class="font-medium">🗂️ 資料集瀏覽</h2>
-    <p class="mt-1 text-sm text-zinc-400">建置中</p>
-  </div>
+    <p class="mt-1 text-sm text-zinc-400">依資料集建立專輯、批次生成與瀏覽</p>
+  </a>
+  <a href="{% url 'album_new' %}" class="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 transition hover:border-violet-500/50">
+    <h2 class="font-medium">🗂️ 建立專輯</h2>
+    <p class="mt-1 text-sm text-zinc-400">從資料集挑選原專輯開始</p>
+  </a>
 </div>
 {% endblock %}

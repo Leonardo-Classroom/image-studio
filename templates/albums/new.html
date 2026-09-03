@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}建立專輯 — 圖像工作室{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-2xl font-semibold">建立專輯</h1>
+<p class="mb-6 text-sm text-zinc-400">第 1 步／共 2 步：從資料集挑選原專輯資料夾</p>
+
+{% if messages %}{% for m in messages %}
+<p class="mb-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{{ m }}</p>
+{% endfor %}{% endif %}
+
+<div id="browser" hx-get="{% url 'source_browse' %}" hx-trigger="load" hx-swap="innerHTML">
+  <p class="text-zinc-500">載入中…</p>
+</div>
+{% endblock %}

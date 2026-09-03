@@ -26,6 +26,10 @@ class GeneratedImage(models.Model):
     text_session = models.ForeignKey(
         TextSession, null=True, blank=True, on_delete=models.CASCADE, related_name="images"
     )
+    album_item = models.ForeignKey(
+        "albums.AlbumItem", null=True, blank=True, on_delete=models.CASCADE,
+        related_name="versions",
+    )
     image = models.ImageField(upload_to="generated/%Y/%m/")
     final_prompt = models.TextField()
     negative = models.TextField(blank=True, default="")
@@ -48,6 +52,10 @@ class GenerationJob(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     text_session = models.ForeignKey(
         TextSession, null=True, blank=True, on_delete=models.CASCADE, related_name="jobs"
+    )
+    album_item = models.ForeignKey(
+        "albums.AlbumItem", null=True, blank=True, on_delete=models.CASCADE,
+        related_name="jobs",
     )
     workflow_name = models.CharField(max_length=200)
     positive = models.TextField()

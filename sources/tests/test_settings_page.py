@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
 
-from datasets.models import DatasetRoot
+from sources.models import DatasetRoot
 
 
 @pytest.fixture

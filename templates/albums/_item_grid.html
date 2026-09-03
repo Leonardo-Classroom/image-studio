@@ -1,0 +1,34 @@
+{% with pending=album.pending_jobs done=album.done_count total=album.items.count %}
+<div id="item-grid" {% if pending %}hx-get="{% url 'album_progress' album.pk %}" hx-trigger="every 3s" hx-swap="outerHTML"{% endif %}>
+  {% if pending %}
+  <div class="mb-4 flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-sm">
+    <span class="inline-block h-2 w-2 animate-pulse rounded-full bg-sky-400"></span>
+    生成中 {{ done }}/{{ total }}
+    <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
+      <div class="h-full bg-violet-500 transition-all" style="width: {% widthratio done total 100 %}%"></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+    {% for item in items %}
+    <a href="#" class="group overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60 transition hover:border-zinc-600">
+      <div class="relative aspect-square bg-zinc-950">
+        {% with latest=item.versions.last %}
+        {% if latest %}
+        <img src="{{ latest.image.url }}" alt="" class="h-full w-full object-cover">
+        {% else %}
+        <img src="{% url 'item_source_thumb' item.pk %}" alt="" class="h-full w-full object-cover opacity-40">
+        <span class="absolute inset-0 flex items-center justify-center text-xs text-zinc-500">未生成</span>
+        {% endif %}
+        {% endwith %}
+        {% if item.versions.count > 1 %}
+        <span class="absolute right-1.5 top-1.5 rounded bg-zinc-950/80 px-1.5 py-0.5 text-xs text-zinc-300">×{{ item.versions.count }}</span>
+        {% endif %}
+      </div>
+      <p class="truncate px-3 py-2 text-xs text-zinc-500">{{ item.flat_name }}</p>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endwith %}

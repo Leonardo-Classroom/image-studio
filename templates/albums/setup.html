@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}專輯設定 — 圖像工作室{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-2xl font-semibold">專輯設定</h1>
+<p class="mb-6 text-sm text-zinc-400">第 2 步／共 2 步：{{ item_count }} 張圖 · 來源 <code class="text-xs">{{ album.source_path }}</code></p>
+
+{% if messages %}{% for m in messages %}
+<p class="mb-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{{ m }}</p>
+{% endfor %}{% endif %}
+
+<form method="post" action="{% url 'album_create' album.pk %}" class="space-y-6">
+  {% csrf_token %}
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label class="mb-1 block text-sm text-zinc-400">專輯名稱</label>
+      <input name="name" value="{{ album.name }}" required
+             class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500">
+    </div>
+    <div>
+      <label class="mb-1 block text-sm text-zinc-400">工作流</label>
+      <select name="workflow" required class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500">
+        {% for wf in workflows %}
+        <option value="{{ wf.name }}" {% if not wf.valid %}disabled{% endif %}>
+          {{ wf.name }}{% if not wf.valid %}（不可用：{{ wf.reason }}）{% endif %}
+        </option>
+        {% empty %}<option disabled>workflows/ 目錄沒有工作流</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label class="mb-1 block text-sm text-zinc-400">全域前綴 prompt（加在所有 caption 最前面）</label>
+    <textarea name="prefix" rows="2" placeholder="masterpiece, best quality, ..."
+              class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500">{{ album.prefix }}</textarea>
+  </div>
+
+  <div x-data="{ all: true }">
+    <div class="mb-2 flex items-center justify-between">
+      <label class="text-sm text-zinc-400">Tag 開關（{{ tags|length }} 個，關掉的會從生成 caption 移除；不影響原資料集）</label>
+      <div class="flex gap-2 text-sm">
+        <button type="button" @click="document.querySelectorAll('.tag-cb').forEach(c => c.checked = true)"
+                class="rounded border border-zinc-700 px-2 py-1 text-zinc-400 hover:text-zinc-200">全開</button>
+        <button type="button" @click="document.querySelectorAll('.tag-cb').forEach(c => c.checked = false)"
+                class="rounded border border-zinc-700 px-2 py-1 text-zinc-400 hover:text-zinc-200">全關</button>
+      </div>
+    </div>
+    <div class="flex max-h-96 flex-wrap gap-2 overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
+      {% for tag in tags %}
+      <label class="cursor-pointer select-none">
+        <input type="checkbox" name="tags" value="{{ tag.pk }}" class="tag-cb peer sr-only" {% if tag.enabled %}checked{% endif %}>
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-zinc-700 px-3 py-1.5 text-sm text-zinc-500 transition peer-checked:border-violet-500/60 peer-checked:bg-violet-500/15 peer-checked:text-zinc-100">
+          {{ tag.text }}<span class="text-xs opacity-60">{{ tag.count }}</span>
+        </span>
+      </label>
+      {% empty %}
+      <p class="text-sm text-zinc-500">此原專輯沒有任何 caption 文字。</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-4">
+    <button name="generate_all" value="1" class="rounded-lg bg-violet-600 px-5 py-2.5 font-medium transition hover:bg-violet-500">建立並全部生成</button>
+    <button class="rounded-lg border border-zinc-700 px-5 py-2.5 transition hover:border-zinc-500">只建立專輯</button>
+    <button formaction="{% url 'album_discard_draft' album.pk %}" formnovalidate
+            class="ml-auto text-sm text-zinc-500 hover:text-red-400">取消並捨棄</button>
+  </div>
+</form>
+{% endblock %}

@@ -40,6 +40,7 @@ def process_one(client: ComfyClient | None = None) -> bool:
         image = GeneratedImage(
             owner=job.owner,
             text_session=job.text_session,
+            album_item=job.album_item,
             final_prompt=job.positive,
             negative=job.negative,
             seed=seed,

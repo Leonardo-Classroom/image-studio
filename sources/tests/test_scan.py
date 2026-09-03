@@ -2,7 +2,7 @@ import hashlib
 
 import pytest
 
-from datasets.scan import (
+from sources.scan import (
     ImageEntry,
     InvalidPath,
     flatten_names,

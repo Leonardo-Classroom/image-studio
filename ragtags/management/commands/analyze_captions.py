@@ -2,7 +2,7 @@ from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
-from datasets.scan import iter_album_images
+from sources.scan import iter_album_images
 from ragtags.clustering import DEFAULT_THRESHOLD, cluster_fragments
 from ragtags.embedder import get_embedder
 from ragtags.slicing import slice_caption

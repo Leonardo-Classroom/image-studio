@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ album.name }} — 圖像工作室{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between gap-4">
+  <div>
+    <a href="{% url 'album_list' %}" class="text-sm text-zinc-400 hover:text-zinc-200">← 專輯總覽</a>
+    <h1 class="text-2xl font-semibold">{{ album.name }}</h1>
+  </div>
+</div>
+
+{% if messages %}{% for m in messages %}
+<p class="mb-4 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">{{ m }}</p>
+{% endfor %}{% endif %}
+
+{% include "albums/_item_grid.html" %}
+{% endblock %}

@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from datasets.models import DatasetRoot
+from sources.models import DatasetRoot
 
 
 @login_required

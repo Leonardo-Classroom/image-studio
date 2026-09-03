@@ -11,7 +11,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-DEFAULT_THRESHOLD = 0.85
+# bge-m3 實測校準：同義片段 0.80–0.93、無關片段 0.48–0.63，0.78 落在分界帶
+DEFAULT_THRESHOLD = 0.78
 
 
 @dataclass
