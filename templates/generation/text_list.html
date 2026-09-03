@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}文字生成 — 圖像工作室{% endblock %}
+{% block content %}
+<h1 class="mb-6 text-2xl font-semibold">文字生成</h1>
+
+<form method="post" action="{% url 'text_create' %}" class="mb-8 space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+  {% csrf_token %}
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label class="mb-1 block text-sm text-zinc-400">工作流</label>
+      <select name="workflow" required class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500">
+        {% for wf in workflows %}
+        <option value="{{ wf.name }}" {% if not wf.valid %}disabled{% endif %}>
+          {{ wf.name }}{% if not wf.valid %}（不可用：{{ wf.reason }}）{% endif %}
+        </option>
+        {% empty %}
+        <option disabled>workflows/ 目錄沒有工作流 JSON</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div>
+    <label class="mb-1 block text-sm text-zinc-400">Prompt</label>
+    <textarea name="prompt" rows="3" required placeholder="1girl, silver hair, ..."
+              class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500"></textarea>
+  </div>
+  <div>
+    <label class="mb-1 block text-sm text-zinc-400">Negative（選填）</label>
+    <textarea name="negative" rows="2"
+              class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500"></textarea>
+  </div>
+  <button class="rounded-lg bg-violet-600 px-5 py-2.5 font-medium transition hover:bg-violet-500">生成</button>
+</form>
+
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+  {% for s in sessions %}
+  <a href="{% url 'text_detail' s.pk %}" class="group overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60 transition hover:border-zinc-600">
+    <div class="aspect-square bg-zinc-950">
+      {% with img=s.images.last %}
+      {% if img %}<img src="{{ img.image.url }}" alt="" class="h-full w-full object-cover transition group-hover:scale-105">{% else %}
+      <div class="flex h-full items-center justify-center text-sm text-zinc-600">生成中…</div>{% endif %}
+      {% endwith %}
+    </div>
+    <p class="truncate px-3 py-2 text-sm text-zinc-400">{{ s.prompt }}</p>
+  </a>
+  {% empty %}
+  <p class="col-span-full text-zinc-500">還沒有生成紀錄，輸入 prompt 開始吧。</p>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}生成詳情 — 圖像工作室{% endblock %}
+{% block content %}
+<a href="{% url 'text_list' %}" class="text-sm text-zinc-400 hover:text-zinc-200">← 回文字生成</a>
+
+<div class="mt-4">
+  {% include "generation/_text_versions.html" %}
+</div>
+
+<form method="post" action="{% url 'text_regenerate' session.pk %}" class="mt-6 space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+  {% csrf_token %}
+  <div>
+    <label class="mb-1 block text-sm text-zinc-400">Prompt</label>
+    <textarea name="prompt" rows="3" class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500">{{ session.prompt }}</textarea>
+  </div>
+  <div>
+    <label class="mb-1 block text-sm text-zinc-400">Negative</label>
+    <textarea name="negative" rows="2" class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500">{{ session.negative }}</textarea>
+  </div>
+  <div class="flex items-center gap-3">
+    <button class="rounded-lg bg-violet-600 px-5 py-2.5 font-medium transition hover:bg-violet-500">重新生成</button>
+    <span class="text-sm text-zinc-500">工作流：{{ session.workflow_name }}</span>
+  </div>
+</form>
+{% endblock %}

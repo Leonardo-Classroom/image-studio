@@ -1,5 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 <h1 class="text-2xl font-semibold">歡迎，{{ user.username }}</h1>
-<p class="mt-2 text-zinc-400">系統建置中——專輯總覽、純文字生成與資料集瀏覽即將上線。</p>
+<div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <a href="{% url 'text_list' %}" class="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 transition hover:border-violet-500/50">
+    <h2 class="font-medium">✍️ 文字生成</h2>
+    <p class="mt-1 text-sm text-zinc-400">輸入 prompt 直接生成圖片</p>
+  </a>
+  <div class="rounded-2xl border border-zinc-800/60 p-6 opacity-50">
+    <h2 class="font-medium">📚 專輯總覽</h2>
+    <p class="mt-1 text-sm text-zinc-400">建置中</p>
+  </div>
+  <div class="rounded-2xl border border-zinc-800/60 p-6 opacity-50">
+    <h2 class="font-medium">🗂️ 資料集瀏覽</h2>
+    <p class="mt-1 text-sm text-zinc-400">建置中</p>
+  </div>
+</div>
 {% endblock %}

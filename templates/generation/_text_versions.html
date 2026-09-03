@@ -1,0 +1,38 @@
+{% with images=session.images.all active_jobs=session.jobs.all %}
+<div id="versions"
+     {% for j in active_jobs %}{% if j.status == "pending" or j.status == "running" %}hx-get="{% url 'text_status' session.pk %}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}{% endfor %}>
+
+  {% if images %}
+  <div x-data="{ i: {{ images|length }} - 1 }" class="select-none">
+    <div class="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
+      {% for img in images %}
+      <div x-show="i === {{ forloop.counter0 }}" class="flex justify-center">
+        <img src="{{ img.image.url }}" alt="" class="max-h-[70vh] object-contain">
+      </div>
+      {% endfor %}
+      <button x-show="i > 0" @click="i--" class="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-zinc-900/80 px-3 py-2 hover:bg-zinc-800">←</button>
+      <button x-show="i < {{ images|length }} - 1" @click="i++" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-zinc-900/80 px-3 py-2 hover:bg-zinc-800">→</button>
+    </div>
+    <div class="mt-2 flex items-center justify-between text-sm text-zinc-400">
+      <span>版本 <span x-text="i + 1"></span> / {{ images|length }}</span>
+      {% for img in images %}
+      <span x-show="i === {{ forloop.counter0 }}">seed {{ img.seed }} · {{ img.created_at|date:"m/d H:i" }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% for job in active_jobs %}
+    {% if job.status == "pending" %}
+    <p class="mt-3 flex items-center gap-2 text-sm text-amber-400"><span class="inline-block h-2 w-2 animate-pulse rounded-full bg-amber-400"></span>排隊中…</p>
+    {% elif job.status == "running" %}
+    <p class="mt-3 flex items-center gap-2 text-sm text-sky-400"><span class="inline-block h-2 w-2 animate-pulse rounded-full bg-sky-400"></span>生成中…</p>
+    {% elif job.status == "failed" %}
+    <div class="mt-3 flex items-center gap-3 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">
+      <span class="flex-1">失敗：{{ job.error }}</span>
+      <form method="post" action="{% url 'job_retry' job.pk %}">{% csrf_token %}<button class="rounded border border-red-400/40 px-2 py-1 hover:bg-red-500/20">重試</button></form>
+    </div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endwith %}
