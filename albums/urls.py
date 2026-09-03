@@ -12,4 +12,10 @@ urlpatterns = [
     path("albums/<int:pk>/progress/", views.album_progress, name="album_progress"),
     path("albums/<int:pk>/discard/", views.album_discard_draft, name="album_discard_draft"),
     path("albums/item/<int:pk>/source-thumb/", views.item_source_thumb, name="item_source_thumb"),
+    path("albums/<int:pk>/view/", views.album_view, name="album_view"),
+    path("albums/item/<int:pk>/view/", views.item_view, name="item_view"),
+    path("albums/item/<int:pk>/caption/", views.item_caption, name="item_caption"),
+    path("albums/item/<int:pk>/generate/", views.item_generate, name="item_generate"),
+    path("albums/tag/<int:pk>/toggle/", views.tag_toggle, name="tag_toggle"),
+    path("favorites/<int:pk>/toggle/", views.favorite_toggle, name="favorite_toggle"),
 ]

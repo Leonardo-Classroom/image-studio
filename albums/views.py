@@ -125,6 +125,132 @@ def album_discard_draft(request, pk):
     return redirect("album_new")
 
 
+def _item_view_context(request, item):
+    """條目檢視片段的共用 context。"""
+    album = item.album
+    items = list(album.items.values_list("pk", flat=True))
+    idx = items.index(item.pk)
+    versions = list(item.versions.filter(deleted_at__isnull=True))
+    from generation.models import Favorite, GenerationJob
+
+    fav_ids = set(
+        Favorite.objects.filter(
+            owner=request.user, image__in=versions
+        ).values_list("image_id", flat=True)
+    )
+    tags = (
+        album.tags.filter(occurrences__item=item).distinct().order_by("-count")
+    )
+    active_jobs = item.jobs.filter(
+        status__in=[GenerationJob.Status.PENDING, GenerationJob.Status.RUNNING]
+    ).count()
+    failed_jobs = item.jobs.filter(status=GenerationJob.Status.FAILED).order_by("-id")[:1]
+    import json
+
+    versions_json = json.dumps([
+        {
+            "id": v.pk,
+            "url": v.image.url,
+            "seed": v.seed,
+            "created": v.created_at.strftime("%m/%d %H:%M"),
+            "prompt": v.final_prompt,
+            "favorited": v.pk in fav_ids,
+        }
+        for v in versions
+    ])
+    return {
+        "versions_json": versions_json,
+        "album": album,
+        "item": item,
+        "versions": versions,
+        "fav_ids": fav_ids,
+        "tags": tags,
+        "effective": services.effective_caption(item),
+        "final": services.final_prompt(item),
+        "prev_id": items[idx - 1] if idx > 0 else None,
+        "next_id": items[idx + 1] if idx < len(items) - 1 else None,
+        "index": idx + 1,
+        "total": len(items),
+        "active_jobs": active_jobs,
+        "failed_job": failed_jobs[0] if failed_jobs else None,
+    }
+
+
+@login_required
+def album_view(request, pk):
+    """專輯瀏覽頁（手勢/面板檢視器）。"""
+    album = get_object_or_404(_own_albums(request), pk=pk)
+    item_id = request.GET.get("item")
+    items = album.items.all()
+    if not items:
+        return redirect("album_detail", pk=album.pk)
+    item = get_object_or_404(items, pk=item_id) if item_id else items.first()
+    return render(request, "albums/viewer.html", _item_view_context(request, item))
+
+
+@login_required
+def item_view(request, pk):
+    """單一條目檢視片段（HTMX 換頁/輪詢用）。"""
+    item = get_object_or_404(AlbumItem, pk=pk, album__owner=request.user)
+    return render(request, "albums/_viewer_item.html", _item_view_context(request, item))
+
+
+def _maybe_update_caption(request, item):
+    caption = request.POST.get("caption")
+    if caption is not None and caption.strip() != item.caption.strip():
+        services.update_caption(item, caption.strip())
+
+
+@login_required
+@require_POST
+def item_caption(request, pk):
+    item = get_object_or_404(AlbumItem, pk=pk, album__owner=request.user)
+    _maybe_update_caption(request, item)
+    return render(request, "albums/_viewer_item.html", _item_view_context(request, item))
+
+
+@login_required
+@require_POST
+def tag_toggle(request, pk):
+    from .models import Tag
+
+    tag = get_object_or_404(Tag, pk=pk, album__owner=request.user)
+    item = get_object_or_404(
+        AlbumItem, pk=request.POST.get("item"), album=tag.album
+    )
+    _maybe_update_caption(request, item)
+    tag.refresh_from_db()
+    tag.enabled = not tag.enabled
+    tag.save(update_fields=["enabled"])
+    return render(request, "albums/_viewer_item.html", _item_view_context(request, item))
+
+
+@login_required
+@require_POST
+def item_generate(request, pk):
+    item = get_object_or_404(AlbumItem, pk=pk, album__owner=request.user)
+    if not item.album.workflow_name:
+        messages.error(request, "此專輯尚未設定工作流")
+    else:
+        _maybe_update_caption(request, item)
+        services.queue_item(item)
+    return render(request, "albums/_viewer_item.html", _item_view_context(request, item))
+
+
+@login_required
+@require_POST
+def favorite_toggle(request, pk):
+    from django.http import JsonResponse
+
+    from generation.models import Favorite, GeneratedImage
+
+    image = get_object_or_404(GeneratedImage, pk=pk, owner=request.user)
+    fav, created = Favorite.objects.get_or_create(owner=request.user, image=image)
+    if not created:
+        fav.delete()
+    return JsonResponse({"favorited": created})
+
+
 @login_required
 def item_source_thumb(request, pk):
     """條目原圖縮圖（owner 限定）。"""

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ album.name }} — 瀏覽{% endblock %}
+{% block main_class %}mx-auto max-w-screen-2xl px-0 sm:px-4 sm:py-4{% endblock %}
+{% block content %}
+<script src="{% static 'js/viewer.js' %}"></script>
+<div id="viewer-wrap">
+  {% include "albums/_viewer_item.html" %}
+</div>
+{% endblock %}

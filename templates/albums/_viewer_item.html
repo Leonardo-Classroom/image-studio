@@ -1,0 +1,131 @@
+{% load static %}
+<div id="viewer-item"
+     x-data='viewer({versions: {{ versions_json|safe }}, favUrl: "{% url "favorite_toggle" 0 %}", csrf: "{{ csrf_token }}"})'
+     {% if active_jobs %}hx-get="{% url 'item_view' item.pk %}" hx-trigger="every 2.5s" hx-swap="outerHTML"{% endif %}
+     class="sm:flex sm:items-start sm:gap-4">
+
+  {% if prev_id %}<button id="nav-prev" hidden hx-get="{% url 'item_view' prev_id %}" hx-target="#viewer-item" hx-swap="outerHTML show:no-scroll" hx-push-url="{% url 'album_view' album.pk %}?item={{ prev_id }}"></button>{% endif %}
+  {% if next_id %}<button id="nav-next" hidden hx-get="{% url 'item_view' next_id %}" hx-target="#viewer-item" hx-swap="outerHTML show:no-scroll" hx-push-url="{% url 'album_view' album.pk %}?item={{ next_id }}"></button>{% endif %}
+
+  {# ===== 主圖區 ===== #}
+  <div class="relative min-w-0 flex-1 select-none"
+       @touchstart="touchStart($event)" @touchend="touchEnd($event, 'main')">
+    <div class="flex items-center gap-3 px-4 py-2 sm:px-0 sm:pt-0">
+      <a href="{% url 'album_detail' album.pk %}" class="text-sm text-zinc-400 hover:text-zinc-200">← {{ album.name }}</a>
+      <span class="text-sm text-zinc-600">{{ index }} / {{ total }}</span>
+      <span class="ml-auto flex items-center gap-2">
+        <span x-show="cur && cur.favorited" class="text-rose-400">♥</span>
+        <button @click="toggleCollapsed()" class="hidden rounded-lg border border-zinc-700 px-2.5 py-1 text-sm text-zinc-400 transition hover:text-zinc-200 sm:block"
+                x-text="collapsed ? '☰ 展開面板' : '✕ 收合面板'"></button>
+        <button @click="openPanel(true)" class="rounded-lg border border-zinc-700 px-2.5 py-1 text-sm text-zinc-400 sm:hidden">⌃ 面板</button>
+      </span>
+    </div>
+
+    <div class="relative flex h-[calc(100dvh-8rem)] items-center justify-center overflow-hidden bg-zinc-950 sm:h-[calc(100dvh-10rem)] sm:rounded-2xl sm:border sm:border-zinc-800">
+      <template x-if="cur">
+        <img :src="cur.url" alt="" class="max-h-full max-w-full object-contain">
+      </template>
+      <template x-if="!cur">
+        <div class="relative h-full w-full">
+          <img src="{% url 'item_source_thumb' item.pk %}" alt="" class="h-full w-full object-contain opacity-30">
+          <span class="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">
+            {% if active_jobs %}生成中…{% else %}尚未生成，開面板按「生成」{% endif %}
+          </span>
+        </div>
+      </template>
+
+      {# 桌面左右箭頭 #}
+      {% if prev_id %}<button onclick="document.getElementById('nav-prev').click()" class="absolute left-3 top-1/2 hidden -translate-y-1/2 rounded-full bg-zinc-900/70 px-3.5 py-2.5 text-lg transition hover:bg-zinc-800 sm:block">←</button>{% endif %}
+      {% if next_id %}<button onclick="document.getElementById('nav-next').click()" class="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-full bg-zinc-900/70 px-3.5 py-2.5 text-lg transition hover:bg-zinc-800 sm:block">→</button>{% endif %}
+
+      {# 加最愛動畫 #}
+      <div x-show="heart" x-transition.opacity class="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <span class="animate-ping text-7xl">❤️</span>
+      </div>
+
+      {% if active_jobs %}
+      <span class="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-zinc-900/80 px-3 py-1.5 text-xs text-sky-300">
+        <span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-sky-400"></span>生成中
+      </span>
+      {% endif %}
+    </div>
+    <p class="px-4 py-2 text-center text-xs text-zinc-600 sm:hidden">左右滑換圖 · 上滑開面板 · 下滑加最愛</p>
+  </div>
+
+  {# ===== 控制面板：桌面右欄 / 手機底部抽屜 ===== #}
+  <aside x-show="panel || window.innerWidth >= 640" x-cloak
+         :class="collapsed ? 'sm:hidden' : ''"
+         class="fixed inset-x-0 bottom-0 z-50 max-h-[80dvh] transform overflow-y-auto rounded-t-2xl border-t border-zinc-700 bg-zinc-900 shadow-2xl transition-transform duration-200 sm:static sm:z-auto sm:max-h-[calc(100dvh-6rem)] sm:w-96 sm:shrink-0 sm:rounded-2xl sm:border sm:border-zinc-800 sm:bg-zinc-900/60 sm:shadow-none"
+         x-bind:style="window.innerWidth < 640 ? (panel ? 'transform:translateY(0)' : 'transform:translateY(110%)') : ''">
+    <div class="sm:hidden" @touchstart="touchStart($event)" @touchend="touchEnd($event, 'panel')">
+      <div class="flex justify-center py-2"><span class="h-1 w-10 rounded-full bg-zinc-700"></span></div>
+    </div>
+
+    <div class="space-y-4 p-4">
+      {# 版本切換（略小的圖） #}
+      <div @touchstart="touchStart($event)" @touchend="touchEnd($event, 'panel')">
+        <template x-if="cur">
+          <div>
+            <div class="relative overflow-hidden rounded-xl bg-zinc-950">
+              <img :src="cur.url" alt="" class="mx-auto max-h-56 object-contain">
+              <button x-show="vi > 0" @click="prevVersion()" class="absolute left-1.5 top-1/2 -translate-y-1/2 rounded-full bg-zinc-900/80 px-2.5 py-1.5 text-sm">←</button>
+              <button x-show="vi < versions.length - 1" @click="nextVersion()" class="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full bg-zinc-900/80 px-2.5 py-1.5 text-sm">→</button>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-xs text-zinc-400">
+              <span>版本 <span x-text="vi + 1"></span>/<span x-text="versions.length"></span></span>
+              <span>seed <span x-text="cur.seed"></span> · <span x-text="cur.created"></span></span>
+              <button @click="favToggle()" class="text-base" :class="cur.favorited ? 'text-rose-400' : 'text-zinc-600 hover:text-zinc-300'">♥</button>
+            </div>
+            <p class="mt-1 max-h-16 overflow-y-auto text-xs leading-relaxed text-zinc-500" x-text="cur.prompt"></p>
+          </div>
+        </template>
+        <p x-show="!cur" class="text-sm text-zinc-500">還沒有生成版本。</p>
+      </div>
+
+      <hr class="border-zinc-800">
+
+      {# caption 編輯 #}
+      <div>
+        <label class="mb-1 block text-xs text-zinc-500">Caption（可手動修改）</label>
+        <textarea id="caption-input" name="caption" rows="4"
+                  class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-violet-500">{{ item.caption }}</textarea>
+        <button hx-post="{% url 'item_caption' item.pk %}" hx-include="#caption-input"
+                hx-target="#viewer-item" hx-swap="outerHTML"
+                class="mt-1 rounded border border-zinc-700 px-2.5 py-1 text-xs text-zinc-400 transition hover:text-zinc-200">儲存 caption</button>
+      </div>
+
+      {# tag 開關（切換即存檔並重算 caption 預覽） #}
+      {% if tags %}
+      <div>
+        <label class="mb-1.5 block text-xs text-zinc-500">Tag 開關（此圖出現的 tag；開關作用於整本專輯）</label>
+        <div class="flex flex-wrap gap-1.5">
+          {% for tag in tags %}
+          <button hx-post="{% url 'tag_toggle' tag.pk %}" hx-vals='{"item": "{{ item.pk }}"}'
+                  hx-include="#caption-input" hx-target="#viewer-item" hx-swap="outerHTML"
+                  class="rounded-full border px-2.5 py-1 text-xs transition {% if tag.enabled %}border-violet-500/60 bg-violet-500/15 text-zinc-100{% else %}border-zinc-700 text-zinc-500 line-through{% endif %}">
+            {{ tag.text }} <span class="opacity-60">{{ tag.count }}</span>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {# 生效 caption 與最終 prompt #}
+      <div class="rounded-lg bg-zinc-950 p-3 text-xs leading-relaxed">
+        <p class="mb-1 text-zinc-500">生成時的最終 prompt：</p>
+        <p class="text-zinc-300">{{ final|default:"（空）" }}</p>
+      </div>
+
+      {% if failed_job %}
+      <p class="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400">上次生成失敗：{{ failed_job.error }}</p>
+      {% endif %}
+
+      <button hx-post="{% url 'item_generate' item.pk %}" hx-include="#caption-input"
+              hx-target="#viewer-item" hx-swap="outerHTML"
+              {% if active_jobs %}disabled{% endif %}
+              class="w-full rounded-lg bg-violet-600 py-2.5 font-medium transition hover:bg-violet-500 disabled:opacity-50">
+        {% if active_jobs %}生成中…{% else %}🎨 生成新版本{% endif %}
+      </button>
+    </div>
+  </aside>
+</div>

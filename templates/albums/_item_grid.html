@@ -12,7 +12,7 @@
 
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
     {% for item in items %}
-    <a href="#" class="group overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60 transition hover:border-zinc-600">
+    <a href="{% url 'album_view' album.pk %}?item={{ item.pk }}" class="group overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60 transition hover:border-zinc-600">
       <div class="relative aspect-square bg-zinc-950">
         {% with latest=item.versions.last %}
         {% if latest %}

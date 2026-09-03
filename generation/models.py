@@ -79,3 +79,15 @@ class GenerationJob(models.Model):
         self.error = ""
         self.prompt_id = ""
         self.save(update_fields=["status", "error", "prompt_id"])
+
+
+class Favorite(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    image = models.ForeignKey(GeneratedImage, on_delete=models.CASCADE, related_name="favorites")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["owner", "image"], name="uniq_owner_image")
+        ]
