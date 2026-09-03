@@ -62,6 +62,21 @@ python manage.py createsuperuser   # 之後在 /admin/ 建其他帳號
 
 `EmptyLatentImage` 尺寸與 `KSampler(.Advanced)` seed 由系統自動填；每次生成 seed 隨機。
 
+### 內建 Z-IMAGE 工作流
+
+`workflows/Z-IMAGE-turbo.json` 由 zit 腳本的工作流轉入（完整保留：ImpactInt 尺寸節點、
+VRAMCleanup/RAMCleanup 清理節點、cfg=1、steps=10、720×1280）。需要的模型：
+
+- `models/diffusion_models/z_image_turbo_bf16.safetensors`（UNet）
+- `models/text_encoders/qwen_3_4b.safetensors`（CLIP，type=qwen_image）
+- `models/vae/ae.safetensors`
+- `models/loras/HYX0920H_all_(full_prompt)_10e-4.safetensors`（角色 LoRA；不需要就把節點 117 lora_name 設 None）
+
+需要的自訂節點（放在 `comfyui/custom_nodes/`，`setup.sh` 會自動裝其依賴）：
+
+- **ComfyUI-Impact-Pack** → `ImpactInt`
+- **Comfyui-Memory_Cleanup** → `VRAMCleanup` / `RAMCleanup`
+
 ## RAG tag 管線
 
 閾值預設 0.78（bge-m3 實測：同義片段 0.80–0.93、無關 0.48–0.63），設定頁可調。
