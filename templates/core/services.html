@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}服務控制 — 圖像工作室{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-2xl font-semibold">服務控制</h1>
+<p class="mb-6 text-sm text-zinc-500">從這裡啟動/關閉 ComfyUI 與 ai-toolkit；也可用專案根目錄的 <code>start.sh</code> / <code>stop.sh</code> 一鍵啟停全部。</p>
+
+{% if messages %}{% for m in messages %}
+<p class="mb-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{{ m }}</p>
+{% endfor %}{% endif %}
+
+{% include "core/_services.html" %}
+{% endblock %}

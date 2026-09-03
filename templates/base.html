@@ -24,6 +24,7 @@
         <a href="{% url 'favorites' %}" class="transition hover:text-zinc-200">最愛</a>
       </div>
       <div class="ml-auto flex items-center gap-4 text-sm text-zinc-400">
+        <a href="{% url 'services' %}" class="transition hover:text-zinc-200">服務</a>
         <a href="{% url 'trash' %}" title="回收桶" class="transition hover:text-zinc-200">🗑</a>
         <a href="{% url 'settings' %}" class="transition hover:text-zinc-200">設定</a>
         <span class="hidden sm:inline">{{ user.username }}</span>

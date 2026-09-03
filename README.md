@@ -17,24 +17,32 @@
 - **瀏覽器**：手機左右滑換圖、上滑開控制面板、下滑加最愛；桌面右欄常駐面板（可摺疊）＋ ←→ 鍵。
   面板內：版本切換（seed/時間/prompt 同步）、caption 手動編輯（向量重比對回 tag）、tag 即時開關、生成、刪版本。
 - **總覽**：資料夾樹、拖曳移動、右鍵（桌面）/長按（手機）選單、專輯以第一張圖為封面。
-- **最愛頁**、**回收桶**（軟刪除：還原/永久刪除）、**設定頁**（資料集根路徑、ComfyUI 位址、分群閾值）。
+- **最愛頁**、**回收桶**（軟刪除：還原/永久刪除）、**設定頁**（資料集根路徑、ComfyUI 位址、分群閾值、ai-toolkit 指令/埠號）。
+- **服務控制面板**（`/services/`）：網頁上啟動/關閉 ComfyUI 與 ai-toolkit，即時狀態燈、log 尾端、開啟連結；
+  與 `start.sh`/`stop.sh` 共用 `../run/*.pid`，兩邊狀態一致。
 
 ## 環境與啟動
 
 conda 環境 `leo3.10`；同層目錄需有 `comfyui/`（引擎）與 `ai-toolkit/`（訓練，選用）。
 一鍵建置：上層目錄 `./setup.sh`。
 
+**一鍵啟停（建議）**——上層目錄：
+
+```bash
+./start.sh   # 啟動 ComfyUI + 網站(:8000) + 生成 worker；pid/log 在 run/
+./stop.sh    # 停止全部（含面板啟動的 ai-toolkit）
+# 無 GPU 環境測試：COMFYUI_ARGS=--cpu ./start.sh
+```
+
+ai-toolkit 由網頁「服務」面板啟停（預設跑 `python flux_train_ui.py`，可在設定頁改指令）。
+
+手動逐一啟動（除錯用）：
+
 ```bash
 conda activate leo3.10
-
-# 1. 啟動 ComfyUI（另一終端；模型放 comfyui/models/checkpoints/）
-python ../comfyui/main.py --listen 127.0.0.1 --port 8188
-
-# 2. 網站
+python ../comfyui/main.py --listen 127.0.0.1 --port 8188   # 模型放 comfyui/models/checkpoints/
 python manage.py runserver 0.0.0.0:8000
-
-# 3. 生成佇列 worker（另一終端，必須跑著才會生圖）
-python manage.py run_worker
+python manage.py run_worker   # 必須跑著才會生圖
 ```
 
 首次使用：

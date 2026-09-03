@@ -31,15 +31,77 @@ def settings_page(request):
 def app_setting_save(request):
     app = AppSetting.get()
     app.comfyui_url = request.POST.get("comfyui_url", "").strip() or app.comfyui_url
+    app.aitoolkit_cmd = request.POST.get("aitoolkit_cmd", "").strip() or app.aitoolkit_cmd
     try:
         t = float(request.POST.get("threshold", ""))
         if 0.3 <= t <= 0.99:
             app.threshold = t
     except ValueError:
         pass
+    try:
+        p = int(request.POST.get("aitoolkit_port", ""))
+        if 1 <= p <= 65535:
+            app.aitoolkit_port = p
+    except ValueError:
+        pass
     app.save()
     messages.success(request, "設定已儲存")
     return redirect("settings")
+
+
+def _services_context(request):
+    from . import procs
+
+    defs = procs.service_defs()
+    host = request.get_host().split(":")[0]
+    services = []
+    for name, d in defs.items():
+        pid = procs.pid_of(name)
+        services.append({
+            "name": name,
+            "label": d["label"],
+            "desc": d["desc"],
+            "pid": pid,
+            "running": pid is not None,
+            "cwd_ok": d["cwd"].is_dir(),
+            "open_url": f"http://{host}:{d['port']}",
+            "log": procs.log_tail(name),
+            "api_ok": procs.comfy_api_ok() if name == "comfyui" else None,
+        })
+    return {"services": services}
+
+
+@login_required
+def services_page(request):
+    return render(request, "core/services.html", _services_context(request))
+
+
+@login_required
+def services_status(request):
+    return render(request, "core/_services.html", _services_context(request))
+
+
+@login_required
+@require_POST
+def service_start(request, name):
+    from . import procs
+
+    if name in procs.service_defs():
+        try:
+            procs.start(name)
+        except FileNotFoundError as e:
+            messages.error(request, str(e))
+    return render(request, "core/_services.html", _services_context(request))
+
+
+@login_required
+@require_POST
+def service_stop(request, name):
+    from . import procs
+
+    if name in procs.service_defs():
+        procs.stop(name)
+    return render(request, "core/_services.html", _services_context(request))
 
 
 @login_required

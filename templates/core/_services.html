@@ -1,0 +1,36 @@
+<div id="services" hx-get="{% url 'services_status' %}" hx-trigger="every 4s" hx-swap="outerHTML"
+     class="grid gap-4 lg:grid-cols-2">
+  {% for s in services %}
+  <div class="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+    <div class="mb-1 flex items-center gap-3">
+      <span class="inline-block h-2.5 w-2.5 rounded-full {% if s.running %}bg-emerald-400{% elif s.api_ok %}bg-amber-400{% else %}bg-zinc-600{% endif %}"></span>
+      <h2 class="font-medium">{{ s.label }}</h2>
+      <span class="text-xs text-zinc-500">
+        {% if s.running %}運行中（pid {{ s.pid }}）
+        {% elif s.api_ok %}回應中（非由本面板啟動）
+        {% else %}已停止{% endif %}
+      </span>
+      <span class="ml-auto flex items-center gap-2">
+        {% if s.running or s.api_ok %}
+        <a href="{{ s.open_url }}" target="_blank" class="rounded-lg border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:border-zinc-500">開啟 ↗</a>
+        {% endif %}
+        {% if s.running %}
+        <button hx-post="{% url 'service_stop' s.name %}" hx-target="#services" hx-swap="outerHTML"
+                hx-confirm="確定關閉 {{ s.label }}？{% if s.name == 'comfyui' %}進行中的生成會失敗。{% endif %}"
+                class="rounded-lg border border-red-500/40 px-3 py-1.5 text-sm text-red-400 transition hover:bg-red-500/10">關閉</button>
+        {% else %}
+        <button hx-post="{% url 'service_start' s.name %}" hx-target="#services" hx-swap="outerHTML"
+                {% if not s.cwd_ok %}disabled title="專案目錄不存在"{% endif %}
+                class="rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium transition hover:bg-violet-500 disabled:opacity-40">啟動</button>
+        {% endif %}
+      </span>
+    </div>
+    <p class="mb-3 text-xs text-zinc-500">{{ s.desc }}</p>
+    {% if s.log %}
+    <pre class="max-h-44 overflow-auto rounded-lg bg-zinc-950 p-3 text-[11px] leading-relaxed text-zinc-400">{{ s.log }}</pre>
+    {% else %}
+    <p class="text-xs text-zinc-600">（尚無 log）</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
