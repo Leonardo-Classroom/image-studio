@@ -73,6 +73,17 @@ class TestWizard:
         })
         assert GenerationJob.objects.count() == 3
 
+    def test_create_saves_negative_and_queues_it(self, client_logged, user, source_album, workflows_dir):
+        album = services.create_draft(user, source_album)
+        client_logged.post(f"/albums/{album.pk}/create/", {
+            "name": "x", "workflow": "basic", "prefix": "masterpiece",
+            "negative": "low quality, blurry",
+            "tags": [t.pk for t in album.tags.all()], "generate_all": "1",
+        })
+        album.refresh_from_db()
+        assert album.negative == "low quality, blurry"
+        assert GenerationJob.objects.first().negative == "low quality, blurry"
+
     def test_create_rejects_bad_workflow(self, client_logged, user, source_album, workflows_dir):
         album = services.create_draft(user, source_album)
         client_logged.post(f"/albums/{album.pk}/create/", {"name": "x", "workflow": "nope"})

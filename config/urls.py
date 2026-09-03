@@ -10,6 +10,7 @@ urlpatterns = [
     path("", include("generation.urls")),
     path("", include("sources.urls")),
     path("", include("albums.urls")),
+    path("", include("prompts.urls")),
 ]
 
 if settings.DEBUG:

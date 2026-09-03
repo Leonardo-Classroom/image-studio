@@ -1,0 +1,142 @@
+{
+  "79": {
+    "inputs": {
+      "unet_name": "z_image_turbo_bf16.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "UNet加载器"
+    }
+  },
+  "80": {
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "加载CLIP"
+    }
+  },
+  "81": {
+    "inputs": {
+      "seed": 934731900488745,
+      "steps": 10,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "117",
+        0
+      ],
+      "positive": [
+        "85",
+        0
+      ],
+      "negative": [
+        "115",
+        0
+      ],
+      "latent_image": [
+        "84",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "K采样器"
+    }
+  },
+  "82": {
+    "inputs": {
+      "samples": [
+        "81",
+        0
+      ],
+      "vae": [
+        "86",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE解码"
+    }
+  },
+  "83": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "82",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "保存图像"
+    }
+  },
+  "84": {
+    "inputs": {
+      "width": 720,
+      "height": 1280,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "空Latent图像"
+    }
+  },
+  "85": {
+    "inputs": {
+      "text": "A young Chinese woman called HYX720H,A portrait of a young East Asian woman with straight, dark hair neatly parted down the middle, wearing a crisp white V-neck blouse with soft, flowing fabric that drapes naturally over her shoulders. Her expression is calm and composed, with neutral lips and steady, direct gaze toward the camera, conveying a quiet confidence. The lighting is soft and diffused, evenly illuminating her face without harsh shadows, suggesting a natural, ambient light source. Her skin appears smooth and naturally lit, with no visible makeup except for subtle, natural-toned foundation.\n\nThe background is a textured, light gray wooden panel with vertical grain patterns, creating a minimalist and modern aesthetic. The surface is slightly out of focus, subtly blurred to emphasize the subject while still retaining a sense of environmental context. The composition is centered, with the subject framed from the chest up, creating a classic, professional portrait format. The framing is tight but respectful, allowing for emotional connection without intrusion.\n\nThere is no visible watermark or digital artifact. The image is shot with a casual, everyday camera—likely a smartphone or compact digital camera—capturing a natural, unfiltered moment. The depth of field is shallow, with the subject sharply in focus while the background gently blurs, directing all visual attention to her face and upper body. The color palette is muted and monochromatic, dominated by soft whites, grays, and natural skin tones, reinforcing a serene, understated atmosphere.\n\nThe overall mood is tranquil, composed, and intimate, evoking a sense of quiet dignity and personal presence. There is no dramatic lighting or stylized effect—just a clean, honest capture of a moment, as if taken in a private, quiet space. The image feels both professional and personal, as if it were taken for a personal portfolio or a casual self-portrait in a minimalist setting. The absence of any distracting elements or clutter allows the viewer to focus entirely on the subject’s expression and the subtle textures of her clothing and the background.\n\nThe image carries an artistic quality through its restrained composition and emotional tone, yet remains grounded in the realism of everyday photography. It is not a staged or heavily edited image, but rather a candid, authentic moment captured with care and intention. The lighting, framing, and subject’s demeanor all work together to create a cohesive, emotionally resonant portrait that speaks to quiet strength and inner peace.",
+      "clip": [
+        "80",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "positive"
+    }
+  },
+  "86": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "加载VAE"
+    }
+  },
+  "115": {
+    "inputs": {
+      "text": "(worst quality:1.4), (low quality:1.4), (normal quality:1.4), jpeg artifacts, signature, username, blurry, (deformed iris:1.3), (deformed pupils:1.3), (mutated hands:1.5), (poorly drawn hands:1.5), (extra fingers:1.5),(extra arms:1.5),grainy, noisy, oversaturated, underexposed, overexposed, (flat color:1.2), (dull colors:1.2), (muted colors:1.2), (soft focus:1.2), (diffused lighting:1.2),cartoon, 3d render, cgi, illustration, drawing, sketch, (vintage photo:1.2), (film grain:1.2), (bokeh background:1.3)，內褲，胸罩，殘留的內褲，殘留的胸罩，殘留的布料，陰毛\n",
+      "clip": [
+        "80",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "negative"
+    }
+  },
+  "117": {
+    "inputs": {
+      "lora_name": "my/HYX0920H_all_(full_prompt)_10e-4/HYX0920H_all_(full_prompt)_10e-4.safetensors",
+      "strength_model": 1,
+      "model": [
+        "79",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "LoRA加载器（仅模型）"
+    }
+  }
+}

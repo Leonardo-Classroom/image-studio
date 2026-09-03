@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "sources",
     "ragtags",
     "albums",
+    "prompts",
 ]
 
 MIDDLEWARE = [

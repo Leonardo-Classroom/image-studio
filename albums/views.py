@@ -161,12 +161,17 @@ def album_analyze(request):
 @login_required
 def album_setup(request, pk):
     """精靈第二步：名稱、工作流、全域前綴、tag 開關牆。"""
+    from prompts.models import SystemPrompt
+
     album = get_object_or_404(_own_albums(request), pk=pk)
+    sys_prompts = SystemPrompt.objects.filter(owner=request.user)
     return render(request, "albums/setup.html", {
         "album": album,
         "workflows": workflows.list_workflows(),
         "tags": album.tags.all(),
         "item_count": album.items.count(),
+        "positive_prompts": sys_prompts.filter(kind=SystemPrompt.Kind.POSITIVE),
+        "negative_prompts": sys_prompts.filter(kind=SystemPrompt.Kind.NEGATIVE),
     })
 
 
@@ -185,6 +190,7 @@ def album_create(request, pk):
     album.name = name
     album.workflow_name = workflow_name
     album.prefix = request.POST.get("prefix", "").strip()
+    album.negative = request.POST.get("negative", "").strip()
     album.status = Album.Status.READY
     album.save()
 

@@ -153,6 +153,7 @@ def queue_item(item: AlbumItem) -> GenerationJob:
         album_item=item,
         workflow_name=item.album.workflow_name,
         positive=final_prompt(item),
+        negative=item.album.negative,
     )
 
 

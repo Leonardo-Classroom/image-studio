@@ -44,6 +44,7 @@ class Album(models.Model):
     workflow_name = models.CharField(max_length=200, blank=True, default="")
     source_path = models.CharField(max_length=500)  # 原專輯絕對路徑（唯讀來源）
     prefix = models.TextField(blank=True, default="")  # 全域前綴 prompt
+    negative = models.TextField(blank=True, default="")  # 負向（空＝用工作流內建）
     threshold = models.FloatField(default=0.78)  # 建立時使用的分群閾值
     created_at = models.DateTimeField(auto_now_add=True)
     deleted_at = models.DateTimeField(null=True, blank=True)

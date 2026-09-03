@@ -29,9 +29,34 @@
   </div>
 
   <div>
-    <label class="mb-1 block text-sm text-zinc-400">全域前綴 prompt（加在所有 caption 最前面）</label>
-    <textarea name="prefix" rows="2" placeholder="masterpiece, best quality, ..."
+    <div class="mb-1 flex items-center gap-3">
+      <label class="text-sm text-zinc-400">全域前綴 prompt（加在所有 caption 最前面）</label>
+      {% if positive_prompts %}
+      <select onchange="if(this.value){document.getElementById('prefix-input').value = this.value;}"
+              class="ml-auto rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs text-zinc-400 outline-none focus:border-violet-500">
+        <option value="">套用系統提示詞…</option>
+        {% for sp in positive_prompts %}<option value="{{ sp.content }}">{{ sp.name }}</option>{% endfor %}
+      </select>
+      {% endif %}
+    </div>
+    <textarea id="prefix-input" name="prefix" rows="2" placeholder="masterpiece, best quality, ..."
               class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500">{{ album.prefix }}</textarea>
+  </div>
+
+  <div>
+    <div class="mb-1 flex items-center gap-3">
+      <label class="text-sm text-zinc-400">負向 prompt（留空＝用工作流內建的負向）</label>
+      {% if negative_prompts %}
+      <select onchange="if(this.value){document.getElementById('negative-input').value = this.value;}"
+              class="ml-auto rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs text-zinc-400 outline-none focus:border-violet-500">
+        <option value="">套用系統提示詞…</option>
+        {% for sp in negative_prompts %}<option value="{{ sp.content }}">{{ sp.name }}</option>{% endfor %}
+      </select>
+      {% endif %}
+    </div>
+    <textarea id="negative-input" name="negative" rows="2" placeholder="低品質、變形…（可留空）"
+              class="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none focus:border-violet-500">{{ album.negative }}</textarea>
+    <p class="mt-1 text-xs text-zinc-500">到「系統提示詞」頁管理可重用的前綴／負向。</p>
   </div>
 
   <div x-data="{ all: true }">
